@@ -17,37 +17,29 @@ namespace jwelloneEditor
 
 		private void OnGUI()
 		{
-			try
-			{
-				using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
-				{
-					_scrollPos = scrollView.scrollPosition;
-					EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.EndHorizontal();
 
+			using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
+			{
+				_scrollPos = scrollView.scrollPosition;
+				using (new EditorGUI.DisabledScope(true))
+				{
 					foreach (var reference in _references)
 					{
-						var text = $"{reference.target.name}({reference.count})";
+						var text = $"{reference.target?.name}({reference.count})";
 						EditorGUILayout.ObjectField(text, reference.target, typeof(Object), true);
 					}
-
-					EditorGUI.EndDisabledGroup();
 				}
-
-
-				EditorGUILayout.BeginHorizontal();
-
-				GUILayout.FlexibleSpace();
-				if (GUILayout.Button("Find", GUILayout.Width(64)))
-				{
-					_references = MissingReferencesUtil.FindAll();
-				}
-
-				EditorGUILayout.EndHorizontal();
 			}
-			catch
+
+			EditorGUILayout.BeginHorizontal();
+
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Find", GUILayout.Width(64)))
 			{
-				_references.Clear();
+				_references = MissingReferencesUtil.FindAll();
 			}
+
 		}
 	}
 }

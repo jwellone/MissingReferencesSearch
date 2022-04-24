@@ -13,11 +13,11 @@ namespace jwelloneEditor
 	public class MissingReferences
 	{
 		[SerializeField] int _count;
-		[SerializeField] UnityEngine.Object _target = null!;
+		[SerializeField] UnityEngine.Object? _target;
 
 		public bool isMissing => count > 0;
 		public int count => _count;
-		public UnityEngine.Object target => _target;
+		public UnityEngine.Object? target => _target;
 
 
 		public MissingReferences(in GameObject target)
