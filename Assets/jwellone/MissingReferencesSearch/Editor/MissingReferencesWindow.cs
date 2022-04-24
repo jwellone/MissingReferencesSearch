@@ -17,8 +17,6 @@ namespace jwelloneEditor
 
 		private void OnGUI()
 		{
-			EditorGUILayout.EndHorizontal();
-
 			using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
 			{
 				_scrollPos = scrollView.scrollPosition;
@@ -40,6 +38,7 @@ namespace jwelloneEditor
 				_references = MissingReferencesUtil.FindAll();
 			}
 
+			EditorGUILayout.EndHorizontal();
 		}
 	}
 }
