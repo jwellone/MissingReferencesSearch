@@ -15,8 +15,16 @@ namespace jwelloneEditor
 			EditorWindow.GetWindow<MissingReferencesWindow>("Missing References");
 		}
 
-		private void OnGUI()
+		void OnGUI()
 		{
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Asset");
+			EditorGUILayout.LabelField("Missing Count");
+			EditorGUILayout.EndHorizontal();
+
+			var style = new GUIStyle(EditorStyles.textField);
+			style.alignment = TextAnchor.MiddleRight;
+
 			using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
 			{
 				_scrollPos = scrollView.scrollPosition;
@@ -24,8 +32,10 @@ namespace jwelloneEditor
 				{
 					foreach (var reference in _references)
 					{
-						var text = $"{reference.target?.name}({reference.count})";
-						EditorGUILayout.ObjectField(text, reference.target, typeof(Object), true);
+						EditorGUILayout.BeginHorizontal();
+						EditorGUILayout.ObjectField(string.Empty, reference.target, typeof(Object), true);
+						EditorGUILayout.TextField(reference.count.ToString(), style);
+						EditorGUILayout.EndHorizontal();
 					}
 				}
 			}

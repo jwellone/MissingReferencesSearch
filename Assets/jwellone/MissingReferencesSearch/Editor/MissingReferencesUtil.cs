@@ -48,7 +48,8 @@ namespace jwelloneEditor
 		int GetMissingCount(in GameObject target)
 		{
 			var missingCount = 0;
-			if (PrefabUtility.IsAnyPrefabInstanceRoot(target) && PrefabUtility.IsPrefabAssetMissing(target))
+			if (PrefabUtility.IsAnyPrefabInstanceRoot(target) && PrefabUtility.IsPrefabAssetMissing(target) ||
+				PrefabUtility.GetPrefabInstanceHandle(target)!=null&&PrefabUtility.GetPrefabInstanceStatus(target)== PrefabInstanceStatus.NotAPrefab)
 			{
 				++missingCount;
 			}
