@@ -7,7 +7,7 @@
 
 
 # MissingReferencesSearch
-Can search for Missing Script or Missing Prefab.
+Search for Missing Scripts and Prefabs in your Project and Hierarchy.
 
 This feature is one of the "j1Tech" developed by jwellone Inc for Unity.
 
