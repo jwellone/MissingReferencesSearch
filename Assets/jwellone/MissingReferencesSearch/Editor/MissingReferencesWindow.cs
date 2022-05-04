@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Experimental.SceneManagement;
 
+#nullable enable
+
 namespace jwelloneEditor
 {
 	public class MissingReferencesWindow : EditorWindow
@@ -87,21 +89,21 @@ namespace jwelloneEditor
 			EditorGUILayout.LabelField("Missing Count");
 			EditorGUILayout.EndHorizontal();
 
-			var style = new GUIStyle(EditorStyles.textField);
-			style.alignment = TextAnchor.MiddleRight;
-
-			using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPosOfProject, GUILayout.Height(position.height / 2f)))
+			var style = new GUIStyle(EditorStyles.textField)
 			{
-				_scrollPosOfProject = scrollView.scrollPosition;
-				using (new EditorGUI.DisabledScope(true))
+				alignment = TextAnchor.MiddleRight
+			};
+
+			using var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPosOfProject, GUILayout.Height(position.height / 2f));
+			_scrollPosOfProject = scrollView.scrollPosition;
+			using (new EditorGUI.DisabledScope(true))
+			{
+				foreach (var reference in _projectReferences)
 				{
-					foreach (var reference in _projectReferences)
-					{
-						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.ObjectField(string.Empty, reference.target, typeof(Object), true);
-						EditorGUILayout.TextField(reference.count.ToString(), style);
-						EditorGUILayout.EndHorizontal();
-					}
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.ObjectField(string.Empty, reference.target, typeof(Object), true);
+					EditorGUILayout.TextField(reference.count.ToString(), style);
+					EditorGUILayout.EndHorizontal();
 				}
 			}
 		}
@@ -127,24 +129,22 @@ namespace jwelloneEditor
 
 			GUILayout.Box("", GUILayout.Width(position.width), GUILayout.Height(1));
 
-			using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPosOfHierarchy))
+			using var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPosOfHierarchy);
+			_scrollPosOfHierarchy = scrollView.scrollPosition;
+			using (new EditorGUI.DisabledScope(true))
 			{
-				_scrollPosOfHierarchy = scrollView.scrollPosition;
-				using (new EditorGUI.DisabledScope(true))
+				foreach (var reference in _hierarchyReferences)
 				{
-					foreach (var reference in _hierarchyReferences)
+					foreach (var data in reference.data)
 					{
-						foreach (var data in reference.data)
+						EditorGUILayout.ObjectField(string.Empty, data.target, typeof(Object), true);
+						EditorGUI.indentLevel += 1;
+						for (var i = 0; i < data.componentNames.Count; ++i)
 						{
-							EditorGUILayout.ObjectField(string.Empty, data.target, typeof(Object), true);
-							EditorGUI.indentLevel += 1;
-							for (var i = 0; i < data.componentNames.Count; ++i)
-							{
-								EditorGUILayout.TextField(data.componentNames[i], data.propertyPaths[i]);
-								GUILayout.Box("", GUILayout.Width(position.width), GUILayout.Height(1));
-							}
-							EditorGUI.indentLevel -= 1;
+							EditorGUILayout.TextField(data.componentNames[i], data.propertyPaths[i]);
+							GUILayout.Box("", GUILayout.Width(position.width-24), GUILayout.Height(1));
 						}
+						EditorGUI.indentLevel -= 1;
 					}
 				}
 			}

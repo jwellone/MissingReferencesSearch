@@ -194,8 +194,12 @@ namespace jwelloneEditor
 		{
 			var list = new List<MissingReferences>();
 
-			foreach (var guid in AssetDatabase.FindAssets("t:Prefab"))
+			var prefabs = AssetDatabase.FindAssets("t:Prefab");
+			for (var i = 0; i < prefabs.Length; ++i)
 			{
+				var guid = prefabs[i];
+				var path = AssetDatabase.GUIDToAssetPath(guid);
+				EditorUtility.DisplayProgressBar("Search prefab", path, (i + 1) / (float)prefabs.Length);
 				var data = new MissingReferences(guid);
 				if (data.isMissing)
 				{
@@ -203,10 +207,16 @@ namespace jwelloneEditor
 				}
 			}
 
+			EditorUtility.ClearProgressBar();
+
 			var activeScene = SceneManager.GetActiveScene();
-			foreach (var guid in AssetDatabase.FindAssets("t:Scene"))
+			var scenes = AssetDatabase.FindAssets("t:Scene");
+			for (var i = 0; i < scenes.Length; ++i)
 			{
+				var guid = scenes[i];
 				var path = AssetDatabase.GUIDToAssetPath(guid);
+				EditorUtility.DisplayProgressBar("Search scene", path, (i + 1) / (float)scenes.Length);
+
 				if (!path.StartsWith("Assets"))
 				{
 					continue;
@@ -232,6 +242,8 @@ namespace jwelloneEditor
 					EditorSceneManager.CloseScene(scene, true);
 				}
 			}
+
+			EditorUtility.ClearProgressBar();
 
 			return list;
 		}
