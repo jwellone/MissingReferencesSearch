@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Experimental.SceneManagement;
+using System.Linq;
 
 #nullable enable
 
@@ -67,17 +68,57 @@ namespace jwelloneEditor
 
 			EditorGUILayout.LabelField("Project");
 			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Remove missing scripts", GUILayout.Width(148)))
+			{
+				var count = 0;
+				var targets = Resources.FindObjectsOfTypeAll<GameObject>();
+				for (var i = 0; i < targets.Length; ++i)
+				{
+					var target = targets[i];
+					count += GameObjectUtility.RemoveMonoBehavioursWithMissingScript(target);
+					EditorUtility.DisplayProgressBar("Search prefab", target.name, (i + 1) / (float)targets.Length);
+				}
+
+				EditorUtility.ClearProgressBar();
+
+				int RemoveMissingScript(GameObject target)
+				{
+					var count = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(target);
+					for (var i = 0; i < target.transform.childCount; ++i)
+					{
+						var child = target.transform.GetChild(i);
+						count += RemoveMissingScript(child.gameObject);
+					}
+
+					return count;
+				}
+
+				var guids = AssetDatabase.FindAssets("t:prefab");
+				for (var i = 0; i < guids.Length; ++i)
+				{
+					var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+					var target = PrefabUtility.LoadPrefabContents(path);
+					var tmpCount = count;
+					count += RemoveMissingScript(target);
+					if (count != tmpCount)
+					{
+						PrefabUtility.SaveAsPrefabAsset(target, path);
+					}
+					PrefabUtility.UnloadPrefabContents(target);
+					EditorUtility.DisplayProgressBar("Search prefab", path, (i + 1) / (float)targets.Length);
+				}
+				EditorUtility.ClearProgressBar();
+
+				if (count > 0)
+				{
+					AssetDatabase.Refresh();
+					OnFindProject();
+				}
+			}
+
 			if (GUILayout.Button("Find", GUILayout.Width(64)))
 			{
-				_scrollPosOfProject = Vector2.zero;
-				_projectReferences = MissingReferencesUtil.FindAll();
-
-				var count = 0;
-				foreach (var reference in _projectReferences)
-				{
-					count += reference.count;
-				}
-				EditorUtility.DisplayDialog("Missing Serach", $"There are {count} missing part.", "close");
+				OnFindProject();
 			}
 
 			EditorGUILayout.EndHorizontal();
@@ -101,7 +142,7 @@ namespace jwelloneEditor
 				foreach (var reference in _projectReferences)
 				{
 					EditorGUILayout.BeginHorizontal();
-					EditorGUILayout.ObjectField(string.Empty, reference.target, typeof(Object), true);
+					EditorGUILayout.ObjectField(string.Empty, reference.target, typeof(UnityEngine.Object), true);
 					EditorGUILayout.TextField(reference.count.ToString(), style);
 					EditorGUILayout.EndHorizontal();
 				}
@@ -114,6 +155,28 @@ namespace jwelloneEditor
 
 			EditorGUILayout.LabelField("Hierarchy");
 			GUILayout.FlexibleSpace();
+
+			if (GUILayout.Button("Remove missing scripts", GUILayout.Width(148)))
+			{
+				var findCall = false;
+				foreach (var reference in _hierarchyReferences)
+				{
+					foreach (var data in reference.data)
+					{
+						if (data.componentNames.Any(value => value == "Missing script"))
+						{
+							findCall = true;
+							GameObjectUtility.RemoveMonoBehavioursWithMissingScript((GameObject)data.target);
+						}
+					}
+				}
+
+				if (findCall)
+				{
+					OnFindHierarchy();
+				}
+			}
+
 			if (GUILayout.Button("Find", GUILayout.Width(64)))
 			{
 				OnFindHierarchy();
@@ -137,17 +200,31 @@ namespace jwelloneEditor
 				{
 					foreach (var data in reference.data)
 					{
-						EditorGUILayout.ObjectField(string.Empty, data.target, typeof(Object), true);
+						EditorGUILayout.ObjectField(string.Empty, data.target, typeof(UnityEngine.Object), true);
 						EditorGUI.indentLevel += 1;
 						for (var i = 0; i < data.componentNames.Count; ++i)
 						{
 							EditorGUILayout.TextField(data.componentNames[i], data.propertyPaths[i]);
-							GUILayout.Box("", GUILayout.Width(position.width-24), GUILayout.Height(1));
+							GUILayout.Box("", GUILayout.Width(position.width - 24), GUILayout.Height(1));
 						}
 						EditorGUI.indentLevel -= 1;
 					}
 				}
 			}
+		}
+
+		void OnFindProject()
+		{
+			_scrollPosOfProject = Vector2.zero;
+			_projectReferences = MissingReferencesUtil.FindAll();
+
+			var count = 0;
+			foreach (var reference in _projectReferences)
+			{
+				count += reference.count;
+			}
+			EditorUtility.DisplayDialog("Missing Serach", $"There are {count} missing part.", "close");
+
 		}
 
 		void OnFindHierarchy()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
@@ -97,6 +98,8 @@ namespace jwelloneEditor
 			{
 				if (component == null)
 				{
+					missingData.componentNames.Add("Missing script");
+					missingData.propertyPaths.Add(MissingReferencesUtil.MakeHierarchyPath(target));
 					++missingCount;
 					continue;
 				}
@@ -246,6 +249,19 @@ namespace jwelloneEditor
 			EditorUtility.ClearProgressBar();
 
 			return list;
+		}
+
+		public static string MakeHierarchyPath(in GameObject target)
+		{
+			var sb = new StringBuilder(target.name);
+			var current = target.transform.parent;
+			while (current != null)
+			{
+				sb.Append("/").Append(current.name);
+				current = current.parent;
+			}
+
+			return sb.ToString();
 		}
 	}
 }
